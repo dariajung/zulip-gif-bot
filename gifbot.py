@@ -9,13 +9,6 @@ import random
 client = zulip.Client(email=config.USERNAME,
                       api_key=config.API_KEY)
 
-# Send a private message
-client.send_message({
-    "type": "private",
-    "to": config.EMAIL,
-    "content": "testing"
-})
-
 # call respond function when client interacts with gif bot
 def respond(msg):
     if msg['sender_email'] != "gif-bot@students.hackerschool.com":
@@ -27,15 +20,17 @@ def respond(msg):
             img_url = call_giphy(api_call)
 
             client.send_message({
-                "type": "private",
-                "to": config.EMAIL,
+                "type": msg['type'],
+                "subject": msg['subject'],
+                "to": msg['sender_email'],
                 "content": "%s" % img_url
             })
 
         else:
             client.send_message({
-                "type": "private",
-                "to": config.EMAIL,
+                "type": msg['type'],
+                "subject": msg['subject'],
+                "to": msg['sender_email'],
                 "content": "I don't know what you're talking about :tired_face:"
             })
 
