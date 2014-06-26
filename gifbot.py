@@ -51,6 +51,5 @@ def normalize_query(arr):
     query = '+'.join(arr[2:])
     return query.lower()
 
-# Print each message the user receives
 # This is a blocking call that will run forever
 client.call_on_each_message(lambda msg: respond(msg))
