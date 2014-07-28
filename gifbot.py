@@ -6,33 +6,61 @@ import json
 import requests
 import random
 
+ZULIP_STREAMS = ["gif-bot-test-stream"]
+
 client = zulip.Client(email=config.USERNAME,
                       api_key=config.API_KEY)
 
+client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS])
+
 # call respond function when client interacts with gif bot
 def respond(msg):
+
+    print msg
+
     if msg['sender_email'] != "gif-bot@students.hackerschool.com":
         content = msg['content'].upper().split()
+
+        print content
             
-        if (content[0] == "GIF" and content[1] == "ME"):
+        if ((content[0] == "GIF" and content[1] == "ME") 
+            or (content[0] == "@**GIF" and content[1] == "BOT**" and content[2] == "GIF" and content[3] == "ME")):
+
             normalized = normalize_query(content)
             api_call = "http://api.giphy.com/v1/gifs/search?limit=20&q=%s&api_key=dc6zaTOxFJmzC" % normalized
             img_url = call_giphy(api_call)
 
-            client.send_message({
-                "type": msg['type'],
-                "subject": msg['subject'],
-                "to": msg['sender_email'],
-                "content": "%s" % img_url
-            })
+
+            if msg['type'] == 'stream':
+                client.send_message({
+                    "type": "stream",
+                    "subject": msg["subject"],
+                    "to": msg['display_recipient'],
+                    "content": "%s" % img_url
+                })
+            else:
+                client.send_message({
+                    "type": msg['type'],
+                    "subject": msg['subject'],
+                    "to": msg['sender_email'],
+                    "content": "%s" % img_url
+                })
 
         else:
-            client.send_message({
+            if msg['type'] == 'stream':
+                client.send_message({
                 "type": msg['type'],
                 "subject": msg['subject'],
-                "to": msg['sender_email'],
+                "to": msg['display_recipient'],
                 "content": "I don't know what you're talking about :tired_face:"
             })
+            else:
+                client.send_message({
+                    "type": msg['type'],
+                    "subject": msg['subject'],
+                    "to": msg['sender_email'],
+                    "content": "I don't know what you're talking about :tired_face:"
+                })
 
 def call_giphy(api_url):    
     response = requests.get(api_url).content
