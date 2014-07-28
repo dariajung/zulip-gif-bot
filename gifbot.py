@@ -16,12 +16,8 @@ client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS
 # call respond function when client interacts with gif bot
 def respond(msg):
 
-    print msg
-
     if msg['sender_email'] != "gif-bot@students.hackerschool.com":
         content = msg['content'].upper().split()
-
-        print content
             
         if ((content[0] == "GIF" and content[1] == "ME") 
             or (content[0] == "@**GIF" and content[1] == "BOT**" and content[2] == "GIF" and content[3] == "ME")):
@@ -29,7 +25,6 @@ def respond(msg):
             normalized = normalize_query(content)
             api_call = "http://api.giphy.com/v1/gifs/search?limit=20&q=%s&api_key=dc6zaTOxFJmzC" % normalized
             img_url = call_giphy(api_call)
-
 
             if msg['type'] == 'stream':
                 client.send_message({
