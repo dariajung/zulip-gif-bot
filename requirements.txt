@@ -44,4 +44,4 @@ virtualenv-clone==0.2.4
 virtualenvwrapper==4.0
 webassets==0.9
 wsgiref==0.1.2
-zulip==0.2.4
+git+git://github.com/zulip/python-zulip.git@2ddd1127506c4e4c91954b8883c592c118552203
