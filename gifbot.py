@@ -60,8 +60,13 @@ def respond(msg):
 def call_giphy(api_url):    
     response = requests.get(api_url).content
     loaded_json = json.loads(response)
-    rand_index = random.randint(0,19)
-    url = loaded_json['data'][rand_index]['images']['fixed_width']['url']
+    count = loaded_json['pagination']['count']-1
+    if count >= 0:
+        rand_index = random.randint(0,count)
+        url = loaded_json['data'][rand_index]['images']['fixed_width']['url']
+    else:
+        # need to replace with a fun 'sorry' image if no images found
+        url = "https://d29xw0ra2h4o4u.cloudfront.net/assets/logo-no-text-d8ed16eddb595505005e8a9c69eb6011.png"
     return url
 
 # accept the content of msg split into array
