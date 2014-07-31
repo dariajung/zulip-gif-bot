@@ -41,22 +41,6 @@ def respond(msg):
                     "content": "%s" % img_url
                 })
 
-        else:
-            if msg['type'] == 'stream':
-                client.send_message({
-                "type": msg['type'],
-                "subject": msg['subject'],
-                "to": msg['display_recipient'],
-                "content": "I don't know what you're talking about :tired_face:"
-            })
-            else:
-                client.send_message({
-                    "type": msg['type'],
-                    "subject": msg['subject'],
-                    "to": msg['sender_email'],
-                    "content": "I don't know what you're talking about :tired_face:"
-                })
-
 def call_giphy(api_url):    
     response = requests.get(api_url).content
     loaded_json = json.loads(response)
