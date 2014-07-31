@@ -55,3 +55,4 @@ docs/_build/
 venv
 CONFIG.py
 zulip
+credentials

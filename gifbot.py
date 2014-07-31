@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 import zulip
-import config
 import json
 import requests
 import random
+import os
 
 ZULIP_STREAMS = ["gif-bot-test-stream"]
 
-client = zulip.Client(email=config.USERNAME,
-                      api_key=config.API_KEY)
+client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
+                      api_key=os.environ['ZULIP_API_KEY'])
 
 client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS])
 
