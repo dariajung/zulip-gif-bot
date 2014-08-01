@@ -6,7 +6,7 @@ import requests
 import random
 import os
 
-ZULIP_STREAMS = ["gif-bot-test-stream"]
+ZULIP_STREAMS = ["gif-bot-test-stream", "cats"]
 
 client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
                       api_key=os.environ['ZULIP_API_KEY'])
