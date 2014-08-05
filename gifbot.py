@@ -6,7 +6,14 @@ import requests
 import random
 import os
 
-ZULIP_STREAMS = ["gif-bot-test-stream", "cats"]
+f = open('subscriptions.txt', 'r')
+
+ZULIP_STREAMS = []
+
+for line in f: 
+    ZULIP_STREAMS.append(line.strip())
+
+print ZULIP_STREAMS
 
 client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
                       api_key=os.environ['ZULIP_API_KEY'])
