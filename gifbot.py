@@ -10,10 +10,11 @@ f = open('subscriptions.txt', 'r')
 
 ZULIP_STREAMS = []
 
-for line in f: 
-    ZULIP_STREAMS.append(line.strip())
-
-print ZULIP_STREAMS
+try:
+    for line in f: 
+        ZULIP_STREAMS.append(line.strip())
+finally: 
+    f.close()
 
 client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
                       api_key=os.environ['ZULIP_API_KEY'])
