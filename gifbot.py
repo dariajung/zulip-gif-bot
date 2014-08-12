@@ -5,6 +5,7 @@ import json
 import requests
 import random
 import os
+import subprocess
 
 f = open('subscriptions.txt', 'r')
 
@@ -21,6 +22,19 @@ client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
 
 client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS])
 
+class LastMsg:
+
+    def __init__(self):
+        self.msg = ""
+
+    def update(self, _id):
+        self.msg = _id
+
+    def getMsg(self):
+        return self.msg
+
+last_message = LastMsg()
+
 # call respond function when client interacts with gif bot
 def respond(msg):
 
@@ -35,19 +49,33 @@ def respond(msg):
             img_url = call_giphy(api_call)
 
             if msg['type'] == 'stream':
-                client.send_message({
+                resp = client.send_message({
                     "type": "stream",
                     "subject": msg["subject"],
                     "to": msg['display_recipient'],
                     "content": "%s" % img_url
                 })
+
+                last_message.update(resp['id'])
+
             else:
-                client.send_message({
+                resp = client.send_message({
                     "type": msg['type'],
                     "subject": msg['subject'],
                     "to": msg['sender_email'],
                     "content": "%s" % img_url
                 })
+
+                last_message.update(resp['id'])
+
+        if (content[0] == "UNDO"):
+            if last_message.getMsg():
+                payload = { 'message_id': last_message.getMsg(), 
+                            'content': 'NOPE.'
+                            }
+                url = "https://api.zulip.com/v1/messages"
+                resp = requests.patch(url, data=payload, auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY']))
+
 
 def call_giphy(api_url):    
     response = requests.get(api_url).content
