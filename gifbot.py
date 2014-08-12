@@ -24,13 +24,16 @@ client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS
 class LastMsg:
 
     def __init__(self):
-        self.msg = ""
+        self.msg_ids = []
 
     def update(self, _id):
-        self.msg = _id
+        self.msg_ids.append(_id)
 
-    def getMsg(self):
-        return self.msg
+    def getMsgId(self):
+        return self.msg_ids.pop()
+
+    def checkEmpty(self):
+        return (len(self.msg_ids) == 0)
 
 last_message = LastMsg()
 
@@ -57,7 +60,7 @@ def respond(msg):
 
                 last_message.update(resp['id'])
 
-            else:
+            elif msg['type'] == 'private':
                 resp = client.send_message({
                     "type": msg['type'],
                     "subject": msg['subject'],
@@ -67,9 +70,9 @@ def respond(msg):
 
                 last_message.update(resp['id'])
 
-        if (content[0] == "UNDO"):
-            if last_message.getMsg():
-                payload = { 'message_id': last_message.getMsg(), 
+        elif (content[0] == "UNDO"):
+            if not last_message.checkEmpty():
+                payload = { 'message_id': last_message.getMsgId(), 
                             'content': 'NOPE.'
                             }
                 url = "https://api.zulip.com/v1/messages"
@@ -85,7 +88,7 @@ def call_giphy(api_url):
         url = loaded_json['data'][rand_index]['images']['fixed_width']['url']
     else:
         # need to replace with a fun 'sorry' image if no images found
-        url = "https://d29xw0ra2h4o4u.cloudfront.net/assets/logo-no-text-d8ed16eddb595505005e8a9c69eb6011.png"
+        url = "http://i.imgflip.com/b2jul.jpg"
     return url
 
 # accept the content of msg split into array
