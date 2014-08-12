@@ -5,7 +5,6 @@ import json
 import requests
 import random
 import os
-import subprocess
 
 f = open('subscriptions.txt', 'r')
 
