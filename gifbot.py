@@ -6,6 +6,7 @@ import requests
 import random
 import os
 
+# Subscriptions.txt is a list of all available streams in the HS Zulip
 f = open('subscriptions.txt', 'r')
 
 ZULIP_STREAMS = []
@@ -16,11 +17,15 @@ try:
 finally: 
     f.close()
 
+# create a Zulip client/bot
 client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
                       api_key=os.environ['ZULIP_API_KEY'])
 
+# subscribe the bot to all streams
 client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS])
 
+# Class used to keep track of messages sent by the bot
+# for undo functionality.
 class LastMsg:
 
     def __init__(self):
@@ -53,14 +58,17 @@ class LastMsg:
         else:
             return False
 
+# instantiate a new LastMsg intance
 last_message = LastMsg()
 
 # call respond function when client interacts with gif bot
 def respond(msg):
 
+    # Make sure the bot never responds to itself or it results in infinite loop
     if msg['sender_email'] != "gif-bot@students.hackerschool.com":
         content = msg['content'].upper().split()
             
+        # bot only sends msg back when messaged gif me or @gif bot gif me    
         if ((content[0] == "GIF" and content[1] == "ME") 
             or (content[0] == "@**GIF" and content[1] == "BOT**" and content[2] == "GIF" and content[3] == "ME")):
 
@@ -68,8 +76,7 @@ def respond(msg):
             api_call = "http://api.giphy.com/v1/gifs/search?limit=20&q=%s&api_key=dc6zaTOxFJmzC" % normalized
             img_url = call_giphy(api_call)
 
-            print msg
-
+            # respond to public stream msgs
             if msg['type'] == 'stream':
                 resp = client.send_message({
                     "type": "stream",
@@ -80,8 +87,7 @@ def respond(msg):
 
                 last_message.update(msg['display_recipient'], msg["subject"], resp['id'])
 
-                print last_message.msg_ids
-
+            # respond to private msg
             elif msg['type'] == 'private':
                 resp = client.send_message({
                     "type": msg['type'],
@@ -93,6 +99,7 @@ def respond(msg):
                 # Should undo be enabled in private msgs?
                 # last_message.update(resp['id'])
 
+        # undo logic
         elif (content[0] == "UNDO"):
             if not last_message.checkEmpty(msg['display_recipient'], msg['subject']):
                 payload = { 'message_id': last_message.getMsgId(msg['display_recipient'], msg['subject']), 
@@ -101,7 +108,7 @@ def respond(msg):
                 url = "https://api.zulip.com/v1/messages"
                 resp = requests.patch(url, data=payload, auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY']))
 
-
+# grab a GIF by calling the GIPHY API
 def call_giphy(api_url):    
     response = requests.get(api_url).content
     loaded_json = json.loads(response)
