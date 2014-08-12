@@ -24,16 +24,34 @@ client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS
 class LastMsg:
 
     def __init__(self):
-        self.msg_ids = []
+        self.msg_ids = {}
 
-    def update(self, _id):
-        self.msg_ids.append(_id)
+    def update(self, _stream, _topic, _id):
+        if _stream in self.msg_ids:
+            if _topic in self.msg_ids[_stream]:
+                self.msg_ids[_stream][_topic].append(_id)
+            else:
+                self.msg_ids[_stream][_topic] = [_id]
+        else: 
+            self.msg_ids[_stream] = dict()
+            self.msg_ids[_stream][_topic] = [_id]
+        
 
-    def getMsgId(self):
-        return self.msg_ids.pop()
+    def getMsgId(self, _stream, _topic):
+        return self.msg_ids[_stream][_topic].pop()
 
-    def checkEmpty(self):
-        return (len(self.msg_ids) == 0)
+    def checkEmpty(self, _stream, _topic):
+        if (len(self.msg_ids) == 0):
+            return True
+
+        elif (_stream not in self.msg_ids or len(self.msg_ids[_stream]) == 0):
+            return True
+
+        elif (_topic not in self.msg_ids[_stream] or len(self.msg_ids[_stream][_topic]) == 0):
+            return True
+
+        else:
+            return False
 
 last_message = LastMsg()
 
@@ -50,6 +68,8 @@ def respond(msg):
             api_call = "http://api.giphy.com/v1/gifs/search?limit=20&q=%s&api_key=dc6zaTOxFJmzC" % normalized
             img_url = call_giphy(api_call)
 
+            print msg
+
             if msg['type'] == 'stream':
                 resp = client.send_message({
                     "type": "stream",
@@ -58,7 +78,9 @@ def respond(msg):
                     "content": "%s" % img_url
                 })
 
-                last_message.update(resp['id'])
+                last_message.update(msg['display_recipient'], msg["subject"], resp['id'])
+
+                print last_message.msg_ids
 
             elif msg['type'] == 'private':
                 resp = client.send_message({
@@ -68,11 +90,12 @@ def respond(msg):
                     "content": "%s" % img_url
                 })
 
-                last_message.update(resp['id'])
+                # Should undo be enabled in private msgs?
+                # last_message.update(resp['id'])
 
         elif (content[0] == "UNDO"):
-            if not last_message.checkEmpty():
-                payload = { 'message_id': last_message.getMsgId(), 
+            if not last_message.checkEmpty(msg['display_recipient'], msg['subject']):
+                payload = { 'message_id': last_message.getMsgId(msg['display_recipient'], msg['subject']), 
                             'content': 'NOPE.'
                             }
                 url = "https://api.zulip.com/v1/messages"
