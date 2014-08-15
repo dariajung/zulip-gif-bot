@@ -1,9 +1,51 @@
 zulip-gif-bot
 =============
 
-Gif bot for Zulip
+####What is it
+---
+A gif bot for the Hacker School Zulip.
 
-Better README coming soon.
+
+####Usage
+---
+
+Gif bot is intended to be very simple to use. It will only respond to messages starting with gif me or @gif bot gif me.
+
+`gif me < QUERY >` or `@gif bot gif me < QUERY >`.
+
+Due to popular demand, there is also an undo functionality. Simply write `undo` in the thread where the unwanted gif was posted by Gif Bot. The image will be replaced with `NOPE.`
+
+####Screenshots
+----
+Query:
+
+!["Gif bot in action"](http://i.imgur.com/o1l67Zi.png)
+
+Undo:
+
+![Imgur](http://i.imgur.com/zplkxRK.png)
+
+####Notes about Zulip API
+----
+I used the Zulip API [Python bindings](https://github.com/zulip/python-zulip) for this project. However, there is no binding for updating a post. To do this, I had to directly send a `PATCH` request to the Zulip messages endpoint of their API. Zulip uses BasicAuth which I wasn't aware of until speaking with one of their engineers.
+
+**Example**
+
+```python
+payload = { 'message_id': last_message.getMsgId(msg['display_recipient'], msg['subject']), 
+            'content': 'NOPE.'
+          }
+url = "https://api.zulip.com/v1/messages"
+resp = requests.patch(url, data=payload, auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY']))
+```
+
+There is also no way to subscribe the bot to all of the streams without subscribing it to all individual streams. In order to achieve this, I used a console hack to list all of the streams, piped it to a text file, `subscriptions.txt`, and subscribed the bot to all streams.
+
+####Siblings
+---
+
+Gif bot has a sibling [meme bot](https://github.com/bruslim/zulip-meme-bot).
+
 
 ####LICENSE
 
