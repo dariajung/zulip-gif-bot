@@ -33,10 +33,10 @@ I used the Zulip API [Python bindings](https://github.com/zulip/python-zulip) fo
 
 ```python
 payload = { 'message_id': last_message.getMsgId(msg['display_recipient'], msg['subject']), 
-            'content': 'NOPE.'
-          }
-url = "https://api.zulip.com/v1/messages"
-resp = requests.patch(url, data=payload, auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY']))
+                            'content': 'NOPE.'
+                            }
+                url = "https://api.zulip.com/v1/messages"
+                resp = requests.patch(url, data=payload, auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY']))
 ```
 
 There is also no way to subscribe the bot to all of the streams without subscribing it to all individual streams. In order to achieve this, I used a console hack to list all of the streams, piped it to a text file, `subscriptions.txt`, and subscribed the bot to all streams.

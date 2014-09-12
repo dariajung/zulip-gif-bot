@@ -6,23 +6,36 @@ import requests
 import random
 import os
 
-# Subscriptions.txt is a list of all available streams in the HS Zulip
-f = open('subscriptions.txt', 'r')
-
-ZULIP_STREAMS = []
-
-try:
-    for line in f: 
-        ZULIP_STREAMS.append(line.strip())
-finally: 
-    f.close()
-
 # create a Zulip client/bot
 client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
                       api_key=os.environ['ZULIP_API_KEY'])
 
+# call Zulip API to get list of all streams
+def get_zulip_streams():
+    response = requests.get(
+        'https://api.zulip.com/v1/streams',
+        auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY'])
+    )
+
+    if response.status_code == 200:
+        return response.json()['streams']
+
+    elif response.status_code == 401:
+        raise RuntimeError('check yo auth')
+
+    else:
+        raise RuntimeError(':( we failed to GET streams.\n(%s)' % response)
+
+
 # subscribe the bot to all streams
-client.add_subscriptions([{"name": stream_name} for stream_name in ZULIP_STREAMS])
+def subscribe_to_streams(streams):
+    streams = [
+            {'name': stream['name']}
+
+            for stream in get_zulip_streams()
+        ]
+
+    client.add_subscriptions(streams)
 
 # Class used to keep track of messages sent by the bot
 # for undo functionality.
@@ -41,7 +54,6 @@ class LastMsg:
             self.msg_ids[_stream] = dict()
             self.msg_ids[_stream][_topic] = [_id]
         
-
     def getMsgId(self, _stream, _topic):
         return self.msg_ids[_stream][_topic].pop()
 
@@ -125,6 +137,10 @@ def call_giphy(api_url):
 def normalize_query(arr):
     query = '+'.join(arr[2:])
     return query.lower()
+
+
+ZULIP_STREAMS = get_zulip_streams()
+subscribe_to_streams(ZULIP_STREAMS)
 
 # This is a blocking call that will run forever
 client.call_on_each_message(lambda msg: respond(msg))
