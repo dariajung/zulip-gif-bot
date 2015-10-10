@@ -6,23 +6,24 @@ import requests
 import random
 import os
 
+USERNAME = os.environ['ZULIP_GIF_USERNAME']
+API_KEY = os.environ['ZULIP_GIF_KEY']
+SITE = os.getenv('ZULIP_GIF_SITE', 'https://zulip.com')
+
 # create a Zulip client/bot
-client = zulip.Client(email=os.environ['ZULIP_USERNAME'],
-                      api_key=os.environ['ZULIP_API_KEY'])
+client = zulip.Client(email=USERNAME,
+                      api_key=API_KEY,
+                      site=SITE)
 
 # call Zulip API to get list of all streams
 def get_zulip_streams():
-    response = requests.get(
-        'https://api.zulip.com/v1/streams',
-        auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY'])
-    )
-
+    ''' Call Zulip API to get a list of all streams
+    '''
+    response = requests.get(client.base_url + 'v1/streams', auth=(USERNAME, API_KEY))
     if response.status_code == 200:
         return response.json()['streams']
-
     elif response.status_code == 401:
         raise RuntimeError('check yo auth')
-
     else:
         raise RuntimeError(':( we failed to GET streams.\n(%s)' % response)
 
@@ -77,7 +78,7 @@ last_message = LastMsg()
 def respond(msg):
 
     # Make sure the bot never responds to itself or it results in infinite loop
-    if msg['sender_email'] != "gif-bot@students.hackerschool.com":
+    if msg['sender_email'] != USERNAME:
         content = msg['content'].upper().split()
             
         # bot only sends msg back when messaged gif me or @gif bot gif me    
@@ -117,8 +118,8 @@ def respond(msg):
                 payload = { 'message_id': last_message.getMsgId(msg['display_recipient'], msg['subject']), 
                             'content': 'NOPE.'
                             }
-                url = "https://api.zulip.com/v1/messages"
-                resp = requests.patch(url, data=payload, auth=requests.auth.HTTPBasicAuth(os.environ['ZULIP_USERNAME'], os.environ['ZULIP_API_KEY']))
+                url = client.base_url + "v1/messages"
+                resp = requests.patch(url, data=payload, auth=requests.auth.HTTPBasicAuth(USERNAME, API_KEY))
 
 # grab a GIF by calling the GIPHY API
 def call_giphy(api_url):    
