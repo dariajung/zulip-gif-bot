@@ -1,12 +1,12 @@
 zulip-gif-bot
 =============
 
-####What is it
+#### What is it
 ---
 A gif bot for the Hacker School Zulip.
 
 
-####Usage
+#### Usage
 ---
 
 Gif bot is intended to be very simple to use. It will only respond to messages starting with gif me or @gif bot gif me.
@@ -15,7 +15,7 @@ Gif bot is intended to be very simple to use. It will only respond to messages s
 
 Due to popular demand, there is also an undo functionality. Simply write `undo` in the thread where the unwanted gif was posted by Gif Bot. The image will be replaced with `NOPE.`
 
-####Screenshots
+#### Screenshots
 ----
 Query:
 
@@ -25,7 +25,7 @@ Undo:
 
 ![Imgur](http://i.imgur.com/zplkxRK.png)
 
-####Notes about Zulip API
+#### Notes about Zulip API
 ----
 I used the Zulip API [Python bindings](https://github.com/zulip/python-zulip) for this project. However, there is no binding for updating a post. To do this, I had to directly send a `PATCH` request to the Zulip messages endpoint of their API. Zulip uses BasicAuth which I wasn't aware of until speaking with one of their engineers.
 
@@ -41,13 +41,13 @@ payload = { 'message_id': last_message.getMsgId(msg['display_recipient'], msg['s
 
 There is also no way to subscribe the bot to all of the streams without subscribing it to all individual streams. In order to achieve this, I used a console hack to list all of the streams, piped it to a text file, `subscriptions.txt`, and subscribed the bot to all streams.
 
-####Siblings
+#### Siblings
 ---
 
 Gif bot has a sibling [meme bot](https://github.com/bruslim/zulip-meme-bot).
 
 
-####LICENSE
+#### LICENSE
 
 ```
 The MIT License (MIT)
